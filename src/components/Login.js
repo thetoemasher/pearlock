@@ -11,6 +11,7 @@ function Login(props) {
     const [error, setError] = useState('')
     const [usernameRef, setUsernameFocus] = useFocus()
     const [passwordRef, setPasswordFocus] = useFocus()
+    const [loading, setLoading] = useState(false)
 console.log('props', props)
     useEffect(() => {
         async function fetchData() {
@@ -30,22 +31,24 @@ console.log('props', props)
       }, [])
 
     return (
-        <div className='row bg-light d-flex flex-row justify-content-center shadow p-3 mb-5 bg-white rounded' style={{height: '50%', width: '40%'}}>
+        <div className='row bg-light d-flex flex-row justify-content-center shadow p-3 mb-5 rounded' style={{height: '50%', width: '40%'}}>
             <div className='col' style={{height: '100%'}}>
-                {error && (
-                    <div>
-                        <p>{error}</p>
-                    </div>
-                    )
-                }
                 <div onKeyDown={e => e.key === 'Enter' && loginUser()} style={{height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-around'}}>
                     <div className='d-flex flex-column align-items-center'>
                         <img src={pearlockWPipe} height='100' width='100'/>
                         <h2>Pearlock Holmes</h2>
+                        {error && <div><p style={{color: 'red'}}>{error}</p></div>}
                     </div>
-                    <input className='form-control shadow-sm' placeholder='Username' ref={usernameRef} type='text' value={username} onChange={e => setUsername(e.target.value)}/>
-                    <input className='form-control shadow-sm' placeholder='Password' ref={passwordRef} type='password' value={password} onChange={e => setPassword(e.target.value)}/>
-                    <button className='btn btn-dark' variant='contained' onClick={loginUser}>Login</button>
+                    <input className='form-control shadow-sm' placeholder='Username' ref={usernameRef} type='text' value={username} onChange={e => setUsername(e.target.value)} disabled={loading}/>
+                    <input className='form-control shadow-sm' placeholder='Password' ref={passwordRef} type='password' value={password} onChange={e => setPassword(e.target.value)} disabled={loading}/>
+                    <button className='btn btn-dark' variant='contained' onClick={loginUser} disabled={loading}>
+                        {loading ? (
+                            <div class="spinner-border text-light" role="status" style={{height: 24, width: 24}}>
+                          </div>
+                        ): 
+                        'Login'
+                        }
+                        </button>
                 </div>
             </div>
         </div>
@@ -53,14 +56,17 @@ console.log('props', props)
     async function loginUser() {
         setError('')
         //add loading
+        setLoading(true)
         if(!username) {
             setError('Username required')
             setUsernameFocus()
+            setLoading(false)
             return
         }
         if(!password) {
             setError('Password required')
             setPasswordFocus()
+            setLoading(false)
             return
         }
         let loginResults = await axios.post('/api/login', {username, password})
@@ -68,6 +74,7 @@ console.log('props', props)
             setError(loginResults.data.error)
             return
         }
+
         props.setUser(loginResults.data.user)
         props.history.push('/' + loginResults.data.user.username)
 
