@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import axios from 'axios'
 import {useFocus} from './utils'
+import {Modal} from 'react-bootstrap'
 
 
 
@@ -18,6 +19,7 @@ function Submit(props) {
         async function fetchData() {
             try{
                 const gameInfoRes = await axios.get('/api/game/' + game_id)
+                // gameInfoRes.data.complete = true
                 setGameInfo(gameInfoRes.data)
             } catch(error) {
                 console.log('error', error)
@@ -29,36 +31,36 @@ function Submit(props) {
 
       console.log('gameInfo', gameInfo)
     return (
-        <div>
+        <div className='row bg-light justify-content-center shadow p-3 my-3 rounded overflow-auto'>
             {!gameInfo ? (
                 <div>Loading</div>
             ) : (
                 <div>
-            {error && (
-                <div>
-                    <p>{error}</p>
-                </div>
-                )
-            }
             {success && <div>Success!!!</div>}
-            <h2>Submit to be apart of {username}'s game</h2>
-            <h3>{game_name}</h3>
-            <h3>{gameInfo.game_description}</h3>
-            {gameInfo.complete ? (
-                <div>
-                    No longer taking submissions
-                </div>
-            ) : (
-                <div>
-                    <div onKeyDown={e => e.key === 'Enter' && submitInfo()}>
-                        <input placeholder='Name' ref={nameRef} type='text' value={name} onChange={e => setName(e.target.value)}/>
-                        <input placeholder='URL' ref={urlRef} type='text' value={url} onChange={e => setUrl(e.target.value)}/>
-                    </div>
+            <Modal.Header>
+                <Modal.Title><h2>{username} has invited you to join</h2></Modal.Title>
+            </Modal.Header>
+                <Modal.Body>
+                <h3 className='text-center'>{game_name}</h3>
+                <h4 className='text-muted text-center'>{gameInfo.game_description}<br/>Imgur urls only</h4>
+                {error && <div className='alert alert-danger'>{error}</div>}
+                {gameInfo.complete ? (
                     <div>
-                        <button onClick={submitInfo}>Submit</button>
+                        No longer taking submissions
                     </div>
-                </div>
-            )}
+                ) : (
+                    <div>
+                            <div>
+                                <div onKeyDown={e => e.key === 'Enter' && submitInfo()}>
+                                    <input className='form-control mb-3' placeholder='Name' ref={nameRef} type='text' value={name} onChange={e => setName(e.target.value)}/>
+                                    <input className='form-control' placeholder='URL' ref={urlRef} type='text' value={url} onChange={e => setUrl(e.target.value)}/>
+                                </div>
+                            </div>
+                    </div>
+                )}
+                </Modal.Body>
+                {!gameInfo.complete && <Modal.Footer><button className='btn btn-primary' onClick={submitInfo}>Submit</button></Modal.Footer>}
+
             </div>
             )}
         </div>
@@ -74,6 +76,11 @@ function Submit(props) {
         }
         if(!url) {
             setError('Image URL required')
+            setUrlFocus()
+            return
+        }
+        if(!url.includes('imgur.com')) {
+            setError('Can only accept imgur URLs at this time')
             setUrlFocus()
             return
         }
